@@ -1,0 +1,45 @@
+services:
+    best_it_ct_order_export.commercetools.client:
+        class: Commercetools\Core\Client
+        factory: ['BestIt\CtOrderExportBundle\ClientFactory', createClient ]
+        arguments:
+        -   {
+                client_id: '%best_it_ct_order_export.commercetools.client.id%',
+                client_secret: '%best_it_ct_order_export.commercetools.client.secret%',
+                project: '%best_it_ct_order_export.commercetools.client.project%',
+                scope: '%best_it_ct_order_export.commercetools.client.scope%'
+            }
+        - '@cache.app'
+
+    best_it_ct_order_export.customer_factory:
+        class: BestIt\CtOrderExportBundle\CustomerFactory
+        arguments:
+            - '@cache.app'
+            - '@best_it_ct_order_export.commercetools.client'
+
+    best_it_ct_order_export.exporter:
+        class: BestIt\CtOrderExportBundle\Exporter
+        arguments:
+            - '@best_it_ct_order_export.customer_factory'
+            - '@event_dispatcher'
+            - '@best_it_ct_order_export.export.filesystem'
+            - '%best_it_ct_order_export.orders.file_template%'
+            - '@best_it_ct_order_export.order_name_generator'
+            - '@twig'
+
+    best_it_ct_order_export.order_visitor:
+        class: BestIt\CtOrderExportBundle\OrderVisitor
+        arguments:
+            - '@best_it_ct_order_export.commercetools.client'
+            - '@event_dispatcher'
+            - '%best_it_ct_order_export.orders.with_pagination%'
+        calls:
+            - ['setDefaultWhere', ['%best_it_ct_order_export.orders.default_where%']]
+
+    best_it_ct_order_export.order_name_generator:
+        class: BestIt\CtOrderExportBundle\OrderNameGenerator
+        arguments:
+            - '%best_it_ct_order_export.orders.name_scheme%'
+
+    best_it_ct_order_export.progress_bar_factory:
+        class: BestIt\CtOrderExportBundle\ProgressBarFactory
