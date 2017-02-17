@@ -44,7 +44,7 @@ class Configuration implements ConfigurationInterface
                         ->booleanNode('with_pagination')
                             ->defaultValue(true)
                             ->info(
-                                'Should we use a paginated list of orders (or is the result list changing by "itself"?)'
+                                'Should we use a paginated list of orders (or is the result list changing by "itself")?'
                             )
                         ->end()
                         ->arrayNode('default_where')
