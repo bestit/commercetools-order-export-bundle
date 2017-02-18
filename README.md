@@ -71,7 +71,15 @@ best_it_ct_order_export:
         name_scheme:          'order_{{id}}_{{YmdHis}}.xml'
 ```
 
-### Further Todos
+## Use the bundle
+
+The bundle provides you with a shell command:
+
+```
+$ php bin/console order-export:export-orders [-v|-vv|-vv] [-q]
+```
+
+## Further Todos
 * Unittesting
 * Added a list template
 * Make heavier use of events
