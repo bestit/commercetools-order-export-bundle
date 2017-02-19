@@ -54,7 +54,10 @@ class Configuration implements ConfigurationInterface
                             )
                             ->prototype('scalar')->end()
                         ->end()
-                        ->scalarNode('file_template')->defaultValue('detail.xml.twig')->end()
+                        ->scalarNode('file_template')
+                            ->info('Which template is used for the export of a single order?')
+                            ->defaultValue('detail.xml.twig')
+                        ->end()
                         ->scalarNode('name_scheme')
                             ->defaultValue('order_{{id}}_{{YmdHis}}.xml')
                             ->info(

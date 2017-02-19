@@ -19,12 +19,6 @@ use Twig_Environment;
 class Exporter
 {
     /**
-     * The used customer factory.
-     * @var CustomerFactory
-     */
-    private $customerFactory = null;
-
-    /**
      * The used event dispatcher.
      * @var EventDispatcherInterface
      */
@@ -56,13 +50,13 @@ class Exporter
 
     /**
      * Exporter constructor.
-     * @param CustomerFactory $customerFactory
+     * @param EventDispatcherInterface $eventDispatcher
      * @param FilesystemInterface $filesystem
-     * @param Twig_Environment $view
+     * @param string $fileTemplate
      * @param OrderNameGenerator $orderNameGenerator
+     * @param Twig_Environment $view
      */
     public function __construct(
-        CustomerFactory $customerFactory,
         EventDispatcherInterface $eventDispatcher,
         FilesystemInterface $filesystem,
         string $fileTemplate,
@@ -70,7 +64,6 @@ class Exporter
         Twig_Environment $view
     ) {
         $this
-            ->setCustomerFactory($customerFactory)
             ->setEventDispatcher($eventDispatcher)
             ->setFilesystem($filesystem)
             ->setFileTemplate($fileTemplate)
@@ -83,10 +76,10 @@ class Exporter
      * @param OrderVisitor $orderVisitor
      * @param ProgressBar $bar
      * @return bool
+     * @todo Add ErrorManagement
      */
     public function exportOrders(OrderVisitor $orderVisitor, ProgressBar $bar): bool
     {
-        $customerFactory = $this->getCustomerFactory();
         $eventDispatcher = $this->getEventDispatcher();
         $filesystem = $this->getFilesystem();
         $view = $this->getView();
@@ -98,34 +91,25 @@ class Exporter
 
             $bar->advance();
 
-            $eventDispatcher->dispatch(EventStore::PRE_ORDER_EXPORT, new PrepareOrderExportEvent($order));
-
+            $event = $eventDispatcher->dispatch(
+                EventStore::PRE_ORDER_EXPORT,
+                new PrepareOrderExportEvent($filesystem, $order)
+            );
+            ;
             $written = $filesystem->put(
-                $this->getOrderNameGenerator()->getOrderName($order),
-                $view->render(
-                    $this->getFileTemplate(),
-                    [
-                        'order' => $order,
-                        'customer' => $customerFactory->getCustomer($order->getCustomerId()),
-                    ]
-                )
+                $file = $this->getOrderNameGenerator()->getOrderName($order),
+                $view->render($this->getFileTemplate(), $event->getExportData())
             );
 
-            $eventDispatcher->dispatch(EventStore::POST_ORDER_EXPORT, new FinishOrderExportEvent($order));
+            $eventDispatcher->dispatch(
+                EventStore::POST_ORDER_EXPORT,
+                new FinishOrderExportEvent($file, $filesystem, $order)
+            );
         }
 
         $bar->finish();
 
         return true;
-    }
-
-    /**
-     * Returns the customer factory.
-     * @return CustomerFactory
-     */
-    private function getCustomerFactory(): CustomerFactory
-    {
-        return $this->customerFactory;
     }
 
     /**
@@ -171,18 +155,6 @@ class Exporter
     private function getView(): Twig_Environment
     {
         return $this->view;
-    }
-
-    /**
-     * Sets the customer factory.
-     * @param CustomerFactory $customerFactory
-     * @return Exporter
-     */
-    private function setCustomerFactory(CustomerFactory $customerFactory): Exporter
-    {
-        $this->customerFactory = $customerFactory;
-
-        return $this;
     }
 
     /**

@@ -11,16 +11,9 @@ services:
             }
         - '@cache.app'
 
-    best_it_ct_order_export.customer_factory:
-        class: BestIt\CtOrderExportBundle\CustomerFactory
-        arguments:
-            - '@cache.app'
-            - '@best_it_ct_order_export.commercetools.client'
-
     best_it_ct_order_export.exporter:
         class: BestIt\CtOrderExportBundle\Exporter
         arguments:
-            - '@best_it_ct_order_export.customer_factory'
             - '@event_dispatcher'
             - '@best_it_ct_order_export.export.filesystem'
             - '%best_it_ct_order_export.orders.file_template%'

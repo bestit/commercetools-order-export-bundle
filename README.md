@@ -65,6 +65,8 @@ best_it_ct_order_export:
 
         # Add where clauses for orders: https://dev.commercetools.com/http-api-projects-orders.html#query-orders
         default_where:        []
+        
+        # Which template is used for the export of a single order?
         file_template:        detail.xml.twig
 
         # Provide an order field name or a format string for the date function enclosed with {{ and }}.
@@ -73,11 +75,23 @@ best_it_ct_order_export:
 
 ## Use the bundle
 
+### Shell-Command
+
 The bundle provides you with a shell command:
 
 ```
 $ php bin/console order-export:export-orders [-v|-vv|-vv] [-q]
 ```
+
+### Events
+
+This bundle provides two events at this moment:
+
+1. **order_export.preOrderExport**: This event is triggered with an 
+**BestIt\CtOrderExportBundle\Event\PrepareOrderExportEvent**-Instance. Use the API for the exportData to get more 
+exportable data.
+2. **order_export.postOrderExport**: The event instance of type **BestIt\CtOrderExportBundle\Event\FinishOrderExportEvent** 
+allows you to manpulate an order after the export.  
 
 ## Further Todos
 * Unittesting
