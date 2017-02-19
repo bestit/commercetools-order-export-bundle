@@ -95,7 +95,7 @@ class Exporter
                 EventStore::PRE_ORDER_EXPORT,
                 new PrepareOrderExportEvent($filesystem, $order)
             );
-            ;
+
             $written = $filesystem->put(
                 $file = $this->getOrderNameGenerator()->getOrderName($order),
                 $view->render($this->getFileTemplate(), $event->getExportData())
