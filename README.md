@@ -58,6 +58,9 @@ best_it_ct_order_export:
 
     # Please provide the service id for your flysystem file system.
     filesystem:           ~ # Required
+    
+    # Please provide the service id for your logging service.
+    logger:               logger
     orders:
 
         # Should we use a paginated list of orders (or is the result list changing by "itself")?
