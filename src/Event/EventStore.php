@@ -15,6 +15,12 @@ final class EventStore
      * Is triggered after the export of an order.
      * @var string
      */
+    const POST_ORDER_EXPORT_FAIL = 'order_export.postOrderExportFail';
+
+    /**
+     * Is triggered after the export of an order.
+     * @var string
+     */
     const POST_ORDER_EXPORT = 'order_export.postOrderExport';
 
     /**

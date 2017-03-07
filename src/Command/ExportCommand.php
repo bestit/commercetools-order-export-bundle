@@ -5,7 +5,11 @@ namespace BestIt\CtOrderExportBundle\Command;
 use BestIt\CtOrderExportBundle\Exporter;
 use BestIt\CtOrderExportBundle\OrderVisitor;
 use BestIt\CtOrderExportBundle\ProgressBarFactory;
-use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
+use Exception;
+use Psr\Log\LoggerAwareTrait;
+use Psr\Log\LoggerInterface;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Command\LockableTrait;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -17,19 +21,49 @@ use Symfony\Component\Console\Output\OutputInterface;
  * @subpackage Command
  * @version $id$
  */
-class ExportCommand extends ContainerAwareCommand
+class ExportCommand extends Command
 {
+    use LoggerAwareTrait, LockableTrait;
+
     /**
      * The exporter service.
      * @var Exporter
      */
-    protected $exporter = null;
+    private $exporter = null;
 
     /**
      * Iterator for the orders.
      * @var OrderVisitor
      */
-    protected $orders = null;
+    private $orders = null;
+
+    /**
+     * The factory for the progress bar.
+     * @var ProgressBarFactory
+     */
+    private $progressBarFactory = null;
+
+    /**
+     * ExportCommand constructor.
+     * @param Exporter $exporter
+     * @param LoggerInterface $logger
+     * @param OrderVisitor $orders
+     * @param ProgressBarFactory $progressBarFactory
+     */
+    public function __construct(
+        Exporter $exporter,
+        LoggerInterface $logger,
+        OrderVisitor $orders,
+        ProgressBarFactory $progressBarFactory
+    ) {
+        parent::__construct();
+
+        $this
+            ->setExporter($exporter)
+            ->setOrders($orders)
+            ->setProgressBarFactory($progressBarFactory)
+            ->setLogger($logger);
+    }
 
     /**
      * Configures the command.
@@ -50,34 +84,50 @@ class ExportCommand extends ContainerAwareCommand
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $orderVisitor = $this->getOrders();
+        $logger = $this->getLogger();
 
-        $this->getExporter()->exportOrders($orderVisitor, $this->getProgressBar($output, count($orderVisitor)));
+        if (!$this->lock()) {
+            $output->writeln('<comment>The command is already running in another process.</comment>');
+            $logger->warning('Command is already running.');
+        } else {
+            try {
+                $logger->info('Started export in command.');
+
+                $orderVisitor = $this->getOrders();
+
+                $this->getExporter()->exportOrders($orderVisitor, $this->getProgressBar($output, count($orderVisitor)));
+
+                $logger->info('Finished export in command.');
+            } catch (Exception $exc) {
+                $logger->error('Stopped export in command.', ['exception' => $exc]);
+            }
+        }
     }
 
     /**
      * Returns the exporter service.
      * @return Exporter
      */
-    public function getExporter(): Exporter
+    private function getExporter(): Exporter
     {
-        if (!$this->exporter) {
-            $this->setExporter($this->getContainer()->get('best_it_ct_order_export.exporter'));
-        }
-
         return $this->exporter;
+    }
+
+    /**
+     * Returns the used logger.
+     * @return LoggerInterface
+     */
+    private function getLogger(): LoggerInterface
+    {
+        return $this->logger;
     }
 
     /**
      * Returns the order iterator.
      * @return OrderVisitor
      */
-    public function getOrders(): OrderVisitor
+    private function getOrders(): OrderVisitor
     {
-        if (!$this->orders) {
-            $this->setOrders($this->getContainer()->get('best_it_ct_order_export.order_visitor'));
-        }
-
         return $this->orders;
     }
 
@@ -98,7 +148,7 @@ class ExportCommand extends ContainerAwareCommand
      */
     private function getProgressBarFactory(): ProgressBarFactory
     {
-        return $this->getContainer()->get('best_it_ct_order_export.progress_bar_factory');
+        return $this->progressBarFactory;
     }
 
     /**
@@ -106,7 +156,7 @@ class ExportCommand extends ContainerAwareCommand
      * @param Exporter $exporter
      * @return ExportCommand
      */
-    public function setExporter(Exporter $exporter): ExportCommand
+    private function setExporter(Exporter $exporter): ExportCommand
     {
         $this->exporter = $exporter;
         return $this;
@@ -117,9 +167,21 @@ class ExportCommand extends ContainerAwareCommand
      * @param OrderVisitor $orders
      * @return ExportCommand
      */
-    public function setOrders(OrderVisitor $orders): ExportCommand
+    private function setOrders(OrderVisitor $orders): ExportCommand
     {
         $this->orders = $orders;
+        return $this;
+    }
+
+    /**
+     * Sets the progress bar factory.
+     * @param ProgressBarFactory $progressBarFactory
+     * @return ExportCommand
+     */
+    private function setProgressBarFactory(ProgressBarFactory $progressBarFactory): ExportCommand
+    {
+        $this->progressBarFactory = $progressBarFactory;
+
         return $this;
     }
 }

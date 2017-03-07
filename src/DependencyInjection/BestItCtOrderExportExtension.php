@@ -34,6 +34,8 @@ class BestItCtOrderExportExtension extends Extension
             $config['filesystem']
         );
 
+        $container->setAlias('best_it_ct_order_export.logger', $config['logger']);
+
         $container->setParameter(
             'best_it_ct_order_export.commercetools.client.id',
             (string) @ $config['commercetools_client']['id']

@@ -1,4 +1,15 @@
 services:
+    best_it_ct_order_export.command:
+        class: BestIt\CtOrderExportBundle\Command\ExportCommand
+        arguments:
+            - '@best_it_ct_order_export.exporter'
+            - '@best_it_ct_order_export.logger'
+            - '@best_it_ct_order_export.order_visitor'
+            - '@best_it_ct_order_export.progress_bar_factory'
+
+        tags:
+            - { name: console.command }
+
     best_it_ct_order_export.commercetools.client:
         class: Commercetools\Core\Client
         factory: ['BestIt\CtOrderExportBundle\ClientFactory', createClient ]
@@ -10,6 +21,7 @@ services:
                 scope: '%best_it_ct_order_export.commercetools.client.scope%'
             }
         - '@cache.app'
+        - '@best_it_ct_order_export.logger'
 
     best_it_ct_order_export.exporter:
         class: BestIt\CtOrderExportBundle\Exporter
@@ -17,6 +29,7 @@ services:
             - '@event_dispatcher'
             - '@best_it_ct_order_export.export.filesystem'
             - '%best_it_ct_order_export.orders.file_template%'
+            - '@best_it_ct_order_export.logger'
             - '@best_it_ct_order_export.order_name_generator'
             - '@twig'
 
@@ -24,7 +37,7 @@ services:
         class: BestIt\CtOrderExportBundle\OrderVisitor
         arguments:
             - '@best_it_ct_order_export.commercetools.client'
-            - '@event_dispatcher'
+            - '@best_it_ct_order_export.logger'
             - '%best_it_ct_order_export.orders.with_pagination%'
         calls:
             - ['setDefaultWhere', ['%best_it_ct_order_export.orders.default_where%']]
