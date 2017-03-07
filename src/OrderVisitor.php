@@ -218,6 +218,8 @@ class OrderVisitor implements Countable
     private function loadOrderCollection(): OrderVisitor
     {
         $logger = $this->getLogger();
+
+        /** @var PagedQueryResponse $response */
         $response = $this->getClient()->execute($this->getOrderQuery());
 
         if ($response instanceof ErrorResponse) {
@@ -228,7 +230,6 @@ class OrderVisitor implements Countable
             $logger->debug('Found some orders.', ['response' => $response]);
         }
 
-        // TODO Add some events.
         $this->setLastResponse($response);
 
         $this->setOrderCollection($this->getLastResponse()->toObject());

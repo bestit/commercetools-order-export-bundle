@@ -88,10 +88,11 @@ class Exporter
      */
     private function exportOrder(Order $order, int $foundOrder)
     {
+        $logger = $this->getLogger();
+
         try {
             $eventDispatcher = $this->getEventDispatcher();
             $filesystem = $this->getFilesystem();
-            $logger = $this->getLogger();
 
             $event = $eventDispatcher->dispatch(
                 EventStore::PRE_ORDER_EXPORT,

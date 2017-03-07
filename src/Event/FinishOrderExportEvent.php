@@ -31,7 +31,7 @@ class FinishOrderExportEvent extends OrderExportEvent
         $this
             ->setFile($file);
 
-        return parent::__construct($filesystem, $order);
+        parent::__construct($filesystem, $order);
     }
 
     /**
