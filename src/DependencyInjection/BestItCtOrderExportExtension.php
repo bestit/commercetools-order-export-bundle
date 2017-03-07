@@ -61,8 +61,12 @@ class BestItCtOrderExportExtension extends Extension
             (bool) ( $config['orders']['with_pagination'] ?? true )
         );
 
-        $container->setParameter('best_it_ct_order_export.orders.default_where', $config['orders']['default_where'] ?? []);
         $container->setParameter('best_it_ct_order_export.orders.file_template', $config['orders']['file_template']);
         $container->setParameter('best_it_ct_order_export.orders.name_scheme', $config['orders']['name_scheme']);
+
+        $container->setParameter(
+            'best_it_ct_order_export.orders.default_where',
+            $config['orders']['default_where'] ?? []
+        );
     }
 }

@@ -71,7 +71,8 @@ class OrderVisitor implements Countable
      * @param LoggerInterface $logger
      * @param bool $withPagination
      */
-    public function __construct(Client $client, LoggerInterface $logger, bool $withPagination = true) {
+    public function __construct(Client $client, LoggerInterface $logger, bool $withPagination = true)
+    {
         $this
             ->setClient($client)
             ->withPagination($withPagination);
@@ -248,7 +249,7 @@ class OrderVisitor implements Countable
 
         if ($wheres = $this->getDefaultWhere()) {
             $logger->debug('Added where-clause to fech orders.', ['predicates' => $wheres]);
-            
+
             array_walk($wheres, function (string $where) use ($logger, $query) {
                 $query->where($where);
             });

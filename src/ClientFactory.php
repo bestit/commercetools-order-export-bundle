@@ -19,14 +19,16 @@ use Psr\Log\LoggerInterface;
 class ClientFactory
 {
     /**
-     * Creates a client.
      * @param array $config
-     * @param Cache $cache
-     * @param LoggerInterface $logger
+     * @param CacheItemPoolInterface $cache
+     * @param LoggerInterface|null $logger
      * @return Client
      */
-    public static function createClient(array $config, CacheItemPoolInterface $cache, LoggerInterface $logger = null): Client
-    {
+    public static function createClient(
+        array $config,
+        CacheItemPoolInterface $cache,
+        LoggerInterface $logger = null
+    ): Client {
         $context = Context::of()->setLanguages(['de'])->setLocale('de_DE')->setGraceful(true);
         $config = Config::fromArray($config)->setContext($context);
 
